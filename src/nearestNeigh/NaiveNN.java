@@ -10,20 +10,40 @@ import java.util.List;
  */
 public class NaiveNN implements NearestNeigh{
 
-    @Override
+    private ArrayList<Point> Index;
+
+	@Override
     public void buildIndex(List<Point> points) {
-        // To be implemented.
+		for(Point p : points) {
+			this.Index.add(p);
+		}
     }
 
     @Override
+    // note to jarod: int k is the amount of results to return
     public List<Point> search(Point searchTerm, int k) {
-        // To be implemented.
-        return new ArrayList<Point>();
+    	ArrayList<Point> returnPoints = new ArrayList<Point>();
+    	Category categ = searchTerm.cat;
+    	
+    	if (this.Index.size() < k) { // if the list of points is less than k we would get stuck in an loop
+    		k = this.Index.size();
+    	}
+    	
+    	for (Point p : this.Index) {
+    		if (!(p.cat.equals(categ))) { // remove points that aren't the same category
+    			this.Index.remove(p);
+    		}
+    	}
+    	while ((returnPoints).size() < k) {
+    		
+    	}
+    	return returnPoints;
     }
 
-    @Override
+
+	@Override
     public boolean addPoint(Point point) {
-        // To be implemented.
+        this.Index.add(point);
         return false;
     }
 
