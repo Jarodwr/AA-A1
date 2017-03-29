@@ -15,15 +15,16 @@ public class NaiveNN implements NearestNeigh{
 	@Override
     public void buildIndex(List<Point> points) {
 		for(Point p : points) {
-			this.Index.add(p);
+			addPoint(p);
 		}
     }
 
     @Override
-    // note to jarod: int k is the amount of results to return
     public List<Point> search(Point searchTerm, int k) {
     	ArrayList<Point> returnPoints = new ArrayList<Point>();
     	Category categ = searchTerm.cat;
+    	Boolean didSwapOccur = false;
+    	Point temp;
     	
     	if (this.Index.size() < k) { // if the list of points is less than k we would get stuck in an loop
     		k = this.Index.size();
@@ -34,28 +35,54 @@ public class NaiveNN implements NearestNeigh{
     			this.Index.remove(p);
     		}
     	}
-    	while ((returnPoints).size() < k) {
-    		
+    	while(true) {
+    		didSwapOccur = false;
+    		for(int j = 0; j < returnPoints.size() - 1; j++) {
+    			 if( searchTerm.distTo(this.Index.get(j)) < searchTerm.distTo(this.Index.get(j - 1)) ) {
+    				 temp = this.Index.get(j);
+    				 this.Index.set(j, this.Index.get(j - 1));
+    				 this.Index.set(j - 1, temp);
+    				 didSwapOccur = true; // if no swap occurs then we're already done
+    			 }
+    		}
+    		if (didSwapOccur == false) {
+    			break;
+    		}
     	}
+    	
     	return returnPoints;
     }
 
 
 	@Override
     public boolean addPoint(Point point) {
+		for(int i = 0; i < this.Index.size() - 1; i++) {
+        	if (point.equals(this.Index.get(i))) {
+        		return false;
+        	}
+        }
         this.Index.add(point);
-        return false;
+        return true;
     }
 
     @Override
     public boolean deletePoint(Point point) {
-        // To be implemented.
+        for(int i = 0; i < this.Index.size() - 1; i++) {
+        	if (point.equals(this.Index.get(i))) {
+        		this.Index.remove(i);
+        		return true;
+        	}
+        }
         return false;
     }
 
     @Override
     public boolean isPointIn(Point point) {
-        // To be implemented.
+    	for(int i = 0; i < this.Index.size() - 1; i++) {
+        	if (point.equals(this.Index.get(i))) {
+        		return true;
+        	}
+        }
         return false;
     }
 
