@@ -37,7 +37,7 @@ public class NaiveNN implements NearestNeigh{
     	}
     	while(true) {
     		didSwapOccur = false;
-    		for(int j = 0; j < returnPoints.size() - 1; j++) {
+    		for(int j = 0; j < this.Index.size() - 1; j++) {
     			 if( searchTerm.distTo(this.Index.get(j)) < searchTerm.distTo(this.Index.get(j - 1)) ) {
     				 temp = this.Index.get(j);
     				 this.Index.set(j, this.Index.get(j - 1));
@@ -49,7 +49,9 @@ public class NaiveNN implements NearestNeigh{
     			break;
     		}
     	}
-    	
+    	for (int i = 0; i < k - 1; i++){
+    		returnPoints.set(i, this.Index.get(i));
+    	}
     	return returnPoints;
     }
 
