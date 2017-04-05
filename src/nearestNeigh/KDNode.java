@@ -2,15 +2,20 @@ package nearestNeigh;
 
 public class KDNode {
 	
+	private KDNode parent;
 	private Point value;
 	private KDNode left;
 	private KDNode right;
 	
-	KDNode(Point point) {
-		
+	KDNode(Point point, KDNode parent) {
+		this.parent = parent;
 		this.value = point;
 		this.left = null;
 		this.right = null;
+	}
+	
+	public KDNode getParent() {
+		return parent;
 	}
 	
 	public Point getValue() {
