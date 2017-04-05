@@ -67,34 +67,36 @@ public class NaiveNN implements NearestNeigh{
 			this.Index.add(point);
 			return true;
 		}
-		for(int i = 0; i < this.Index.size() - 1; i++) {
-        	if (point.equals(this.Index.get(i))) {
-        		return false;
-        	}
-        }
+		if (isPointIn(point)) {
+			return false;
+		}
         this.Index.add(point);
         return true;
     }
 
     @Override
     public boolean deletePoint(Point point) {
-        for(int i = 0; i < this.Index.size() - 1; i++) {
-        	if (point.equals(this.Index.get(i))) {
-        		this.Index.remove(i);
-        		return true;
-        	}
+       Iterator<Point> iter = this.Index.iterator();
+       while(iter.hasNext()) {
+    	   Point p = iter.next();
+    	   if (p.equals(point)) {
+    		   iter.remove();
+    		   return true;
+    	   }
         }
         return false;
     }
 
     @Override
     public boolean isPointIn(Point point) {
-    	for(int i = 0; i < this.Index.size() - 1; i++) {
-        	if (point.equals(this.Index.get(i))) {
-        		return true;
-        	}
-        }
-        return false;
+    	Iterator<Point> iter = this.Index.iterator();
+    	while (iter.hasNext()) {
+    		Point p = iter.next();
+    		if (p.equals(point)) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
 
 }
