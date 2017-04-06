@@ -18,6 +18,10 @@ public class KDNode {
 		return parent;
 	}
 	
+	public void setParent(KDNode parent) {
+		this.parent = parent;
+	}
+	
 	public Point getValue() {
 		
 		return value;

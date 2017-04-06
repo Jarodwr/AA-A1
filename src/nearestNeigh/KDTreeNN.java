@@ -53,34 +53,86 @@ public class KDTreeNN implements NearestNeigh{
     	
     	//Build with starting direction and starting list
     	rootOfTree = buildTree(null, sortedByLat, sortedByLat);
-    	
     }
 
     //currently list is backwards
     @Override
     public List<Point> search(Point searchTerm, int k) {
-    	List<Point> results = new ArrayList<Point>();
+    	List<KDNode> results = new ArrayList<KDNode>();
     	results = goUpTree(searchTerm, goDownTree(searchTerm, rootOfTree), results, rootOfTree);
     	
-        return new ArrayList<Point>();
+    	ArrayList<Point> points = new ArrayList<Point>();
+    	for (int i = results.size(); i > 0; i--) {
+    		points.add(results.get(i).getValue());
+    	}
+        return points;
     }
 
     @Override
     public boolean addPoint(Point point) {
-        // To be implemented.
-        return false;
+    	List<KDNode> search = new ArrayList<KDNode>();
+    	KDNode leaf = goDownTree(point, rootOfTree);
+    	boolean leafLat = isLat;
+    	search = goUpTree(point, leaf, search, rootOfTree);
+    	if (search.get(0).getValue().equals(point)) {
+    		return false;
+    	} else {
+    		if (leafLat) {
+    			if (point.lat > leaf.getValue().lat) {
+    				leaf.setRight(new KDNode(point, leaf));
+    			} else {
+    				leaf.setLeft(new KDNode(point, leaf));
+    			}
+    		} else {
+    			if (point.lon > leaf.getValue().lon) {
+    				leaf.setRight(new KDNode(point, leaf));
+    			} else {
+    				leaf.setLeft(new KDNode(point, leaf));
+    			}
+    		}
+    	}
+        return true;
     }
 
     @Override
     public boolean deletePoint(Point point) {
-        // To be implemented.
-        return false;
+    	List<KDNode> search = new ArrayList<KDNode>();
+    	search = goUpTree(point, goDownTree(point, rootOfTree), search, rootOfTree);
+    	KDNode n = search.get(search.size());
+        if (n.equals(point)) {
+        	
+        	KDNode a = null;
+        	boolean nIsLeft = n.equals(n.getParent().getLeft());
+        	
+        	if (n.getLeft() != null) {
+        		a = getInnerRightNode(n);
+        	}
+        	else if (n.getRight() != null) {
+        		a = getInnerLeftNode(n);
+        	}
+
+        	
+        	if (nIsLeft) {
+        		n.getParent().setLeft(a);
+        	} else {
+        		n.getParent().setRight(a);
+        	}
+        	
+       		if (a != null) {
+       			a.setParent(n.getParent());
+       		}
+       		
+       		return true;
+
+        } else {
+        	return false;	
+        }
+
     }
 
     @Override
     public boolean isPointIn(Point point) {
-        // To be implemented.
-        return false;
+        return point.equals(search(point, 1).get(0));
     }
 
     //Could be done better
@@ -147,9 +199,9 @@ public class KDTreeNN implements NearestNeigh{
     	}
     }
     
-    public List<Point> goUpTree(Point value, KDNode child, List<Point> closest, KDNode root) {
+    public List<KDNode> goUpTree(Point value, KDNode child, List<KDNode> closest, KDNode root) {
     	
-    	Point closestValue = closest.get(closest.size());
+    	Point closestValue = closest.get(closest.size()).getValue();
     	Point parentValue = child.getParent().getValue();
     	double testSubDist;
     	boolean isLeft;
@@ -161,7 +213,7 @@ public class KDTreeNN implements NearestNeigh{
     	
     	//Update closest value if parent is closer than the current closest value
     	if (parentValue.distTo(value) < closestValue.distTo(value)) {
-    		closest.add(parentValue);
+    		closest.add(child.getParent());
     	}
     	
     	//Look over this
@@ -189,8 +241,17 @@ public class KDTreeNN implements NearestNeigh{
     
     //Used for when a node with multiple children is deleted
     //Very unfinished? I don't know
-    public KDNode getInnerNode(KDNode root) {
-    	KDNode c = getInnerNode(root.getLeft());
+    public KDNode getInnerLeftNode(KDNode root) {
+    	KDNode c = getInnerLeftNode(root.getLeft());
+    	if (c != null) {
+    		return c;
+    	} else {
+    		return root;
+    	}
+    }
+    
+    public KDNode getInnerRightNode(KDNode root) {
+    	KDNode c = getInnerRightNode(root.getLeft());
     	if (c != null) {
     		return c;
     	} else {
