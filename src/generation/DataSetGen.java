@@ -35,8 +35,9 @@ public class DataSetGen {
 			double x = topLeftCityBounds[0] + (bottomRightCityBounds[0] - topLeftCityBounds[0]) * r.nextDouble();
 			double y = topLeftCityBounds[1] + (bottomRightCityBounds[1] - topLeftCityBounds[1]) * r.nextDouble();
 			String cat = categories[r.nextInt(3)];
-			writer.println("id" + i + " " + cat + " " + x + y);
+			writer.println("id" + i + " " + cat + " " + x + " " + y);
 			
 		}
+		writer.close();
 	}
 }
