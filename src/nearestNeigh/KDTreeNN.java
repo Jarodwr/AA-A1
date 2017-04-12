@@ -11,7 +11,6 @@ import java.util.List;
 public class KDTreeNN implements NearestNeigh{
 	List<Point> sortedByLat, sortedByLon;
 	KDNode rootOfTree;
-	boolean isLat = true;
 	
     @Override
     public void buildIndex(List<Point> points) {
@@ -23,28 +22,30 @@ public class KDTreeNN implements NearestNeigh{
     	boolean swapped = false;
     	
     	do {
-        	for (int i = 0; i < sortedByLat.size(); i++) {
+    		swapped = false;
+        	for (int i = 0; i < sortedByLat.size()-1; i++) {
         		Point first = sortedByLat.get(i);
         		Point second = sortedByLat.get(i+1);
         		if (first.lat > second.lat) {
-        			sortedByLat.set(i, second);
-        			sortedByLat.set(i+1, first);
+        			sortedByLat.remove(first);
+        			sortedByLat.add(i+1, first);
         			if (!swapped)
         				swapped = true;
+        		} else {
+        			swapped = false;
         		}
+        		
         	}
     	} while(swapped);
     	
-    	if (swapped)
-    		swapped = false;
-    	
     	do {
-        	for (int i = 0; i < sortedByLon.size(); i++) {
+    		swapped = false;
+        	for (int i = 0; i < sortedByLon.size()-1; i++) {
         		Point first = sortedByLon.get(i);
         		Point second = sortedByLon.get(i+1);
         		if (first.lon > second.lon) {
-        			sortedByLon.set(i, second);
-        			sortedByLon.set(i+1, first);
+        			sortedByLat.remove(first);
+        			sortedByLat.add(i+1, first);
         			if (!swapped)
         				swapped = true;
         		}
@@ -52,82 +53,89 @@ public class KDTreeNN implements NearestNeigh{
     	} while(swapped);
     	
     	//Build with starting direction and starting list
-    	rootOfTree = buildTree(null, sortedByLat, sortedByLat);
+    	rootOfTree = buildTree(sortedByLat, rootOfTree, 0);
     }
 
-    //currently list is backwards
     @Override
     public List<Point> search(Point searchTerm, int k) {
     	List<KDNode> results = new ArrayList<KDNode>();
-    	results = goUpTree(searchTerm, goDownTree(searchTerm, rootOfTree), results, rootOfTree);
-    	
+    	results = BSTSearch(rootOfTree, searchTerm, 0, results, k);
     	ArrayList<Point> points = new ArrayList<Point>();
-    	for (int i = results.size(); i > 0; i--) {
+    	for (int i = 0; i < results.size(); i++)
     		points.add(results.get(i).getValue());
-    	}
         return points;
     }
 
     @Override
     public boolean addPoint(Point point) {
-    	List<KDNode> search = new ArrayList<KDNode>();
-    	KDNode leaf = goDownTree(point, rootOfTree);
-    	boolean leafLat = isLat;
-    	search = goUpTree(point, leaf, search, rootOfTree);
-    	if (search.get(0).getValue().equals(point)) {
+    	if (!isPointIn(point))
+    		addToTree(rootOfTree, point, 0);
+    	else
     		return false;
-    	} else {
-    		if (leafLat) {
-    			if (point.lat > leaf.getValue().lat) {
-    				leaf.setRight(new KDNode(point, leaf));
-    			} else {
-    				leaf.setLeft(new KDNode(point, leaf));
-    			}
-    		} else {
-    			if (point.lon > leaf.getValue().lon) {
-    				leaf.setRight(new KDNode(point, leaf));
-    			} else {
-    				leaf.setLeft(new KDNode(point, leaf));
-    			}
-    		}
-    	}
-        return true;
+    	return true;
     }
 
+    public KDNode addToTree(KDNode T, Point value, int layer) {
+    	
+    	KDNode left = T.getLeft();
+    	KDNode right = T.getRight();
+    	
+    	boolean goLeft;
+		if (layer%2 == 0)
+			goLeft = T.getValue().lat < value.lat;
+		else
+			goLeft = T.getValue().lon < value.lon;
+		
+    	if (left == null && right == null) {
+    		if (goLeft)
+    			T.setLeft(new KDNode(value, T));
+    		else
+    			T.setRight(new KDNode(value, T));
+    		
+    	} else {
+    		if (goLeft)
+    			if (left != null)
+    				return addToTree(left, value, layer+1);
+    			else
+    				return addToTree(right, value, layer+1);
+    		else
+    			if (right != null)
+    				return addToTree(right, value, layer+1);
+    			else
+    				return addToTree(left, value, layer+1);
+    	}
+    	return T;
+    }
+    
     @Override
     public boolean deletePoint(Point point) {
     	List<KDNode> search = new ArrayList<KDNode>();
-    	search = goUpTree(point, goDownTree(point, rootOfTree), search, rootOfTree);
-    	KDNode n = search.get(search.size());
-        if (n.equals(point)) {
+    	search = BSTSearch(rootOfTree, point, 0, search, 1);
+    	
+    	KDNode n = search.get(search.size()-1);
+        if (point.equals(n.getValue())) {
         	
         	KDNode a = null;
         	boolean nIsLeft = n.equals(n.getParent().getLeft());
         	
-        	if (n.getLeft() != null) {
+        	if (n.getLeft() != null)
         		a = getInnerRightNode(n);
-        	}
-        	else if (n.getRight() != null) {
+        	else if (n.getRight() != null)
         		a = getInnerLeftNode(n);
-        	}
 
-        	
-        	if (nIsLeft) {
+        	if (nIsLeft)
         		n.getParent().setLeft(a);
-        	} else {
+        	else
         		n.getParent().setRight(a);
-        	}
         	
-       		if (a != null) {
+       		if (a != null)
        			a.setParent(n.getParent());
-       		}
        		
        		return true;
 
         } else {
         	return false;	
         }
-
     }
 
     @Override
@@ -135,127 +143,169 @@ public class KDTreeNN implements NearestNeigh{
         return point.equals(search(point, 1).get(0));
     }
 
-    //Could be done better
-    public KDNode buildTree(KDNode parent, List<Point> points, List<Point> direction) {
-    	int pointsSize = points.size();
-    	
-    	switch(pointsSize) {
-    	
-    	case 0:
+    public KDNode buildTree(List<Point> p, KDNode parent, int layer) {
+
+    	if (p.size() == 0) {
     		return null;
-    		
+    	}
+    	KDNode T = new KDNode(p.get(p.size()/2), parent);
+    	p.remove(p.size()/2);
+
+    	switch (p.size()) {
+
+    	case 0:
+    		break;
+
     	case 1:
-    		return new KDNode(points.get(0), parent);
-    		
-    	case 2:
-    		KDNode c = new KDNode(points.get(1), parent);
-    		c.setLeft(new KDNode(points.get(0), parent));
-    		return c;
-    		
+    		Point leaf = p.get(0);
+
+    		boolean isLeft;
+    		if (layer % 2 == 0)
+    			isLeft = leaf.lon > T.getValue().lon;
+    		else
+    			isLeft = leaf.lat > T.getValue().lat;
+
+    		if (isLeft)
+    			T.setLeft(new KDNode(leaf, T));
+    		else
+    			T.setRight(new KDNode(leaf, T));
+    		break;
+
     	default:
-    		KDNode d = new KDNode(points.get(pointsSize/2), parent);
-        	
-        	List<Point> left = direction;
-        	List<Point> right = direction;
-        	
-        	left.retainAll(points.subList(0, (pointsSize/2)-1));
-        	right.retainAll(points.subList((pointsSize/2)+1, pointsSize));
-        	
-        	List<Point> nextDirection;
-        	
-        	//Make this more efficient
-        	if (direction.equals(sortedByLat)) {
-        		nextDirection = sortedByLon;
-        	} else {
-        		nextDirection = sortedByLat;
-        	}
-        	d.setLeft(buildTree(d, left, nextDirection));
-        	d.setRight(buildTree(d, right, nextDirection));
-    		return d;
-    	}
-
-    }
-    
-    public KDNode goDownTree(Point value, KDNode root) {
-    	
-    	KDNode left = root.getLeft();
-    	KDNode right = root.getRight();
-    	boolean isLeft = false;
-    	
-    	if (isLat) {
-    		if (Math.abs(left.getValue().lat - value.lat) < Math.abs(right.getValue().lat - value.lat))
-    			isLeft = true;
-
-    	} else {
-    		if (Math.abs(left.getValue().lon - value.lon) < Math.abs(right.getValue().lon - value.lon))
-    			isLeft = true;
-    	}
-    	
-    	isLat = !isLat;
-    	if (isLeft) {
-    		return goDownTree(value, left);
-    	} else {
-    		return goDownTree(value, right);
-    	}
-    }
-    
-    public List<KDNode> goUpTree(Point value, KDNode child, List<KDNode> closest, KDNode root) {
-    	
-    	Point closestValue = closest.get(closest.size()).getValue();
-    	Point parentValue = child.getParent().getValue();
-    	double testSubDist;
-    	boolean isLeft;
-    	
-    	//Checks whether or not to terminate this sub process
-    	if (child.getParent().equals(root)) {
-    		return closest;
-    	}
-    	
-    	//Update closest value if parent is closer than the current closest value
-    	if (parentValue.distTo(value) < closestValue.distTo(value)) {
-    		closest.add(child.getParent());
-    	}
-    	
-    	//Look over this
-    	if (isLat) {
-        	testSubDist = Math.abs(closestValue.lat - parentValue.lat);
-        	isLeft = closestValue.lat < parentValue.lat;
-    	} else {
-    		testSubDist = Math.abs(closestValue.lon - parentValue.lon);
-        	isLeft = closestValue.lon < parentValue.lon;
-    	}
-    	
-    	isLat = !isLat;
-    	
-    	//checks whether to check the other branch
-    	if (closestValue.distTo(value) > testSubDist) {
-    		if (isLeft) {
-    			return goUpTree(value, goDownTree(value, child.getParent().getLeft()), closest, child.getParent());
+    		if (layer % 2 == 0) {
+    			List<Point> temp = new ArrayList<Point>(sortedByLat);
+    			temp.retainAll(p);
+    			p = temp;
     		} else {
-    			return goUpTree(value, goDownTree(value, child.getParent().getRight()), closest, child.getParent());
+    			List<Point> temp = new ArrayList<Point>(sortedByLon);
+    			temp.retainAll(p);
+    			p = temp;
     		}
+
+    		List<Point> left = new ArrayList<Point>(p);
+    		left = left.subList(0, ((left.size())/2) - 1);
+
+    		List<Point> right = new ArrayList<Point>(p);
+    		right = right.subList(right.size()/2, right.size());
+
+    		T.setLeft(buildTree(left, T, layer+1));
+    		T.setRight(buildTree(right, T, layer+1));
     	}
-    	
-    	return goUpTree(value, child.getParent(), closest, root);
+
+    	return T;
+    }
+    
+	List<KDNode> BSTSearch(KDNode T, Point value, int layer, List<KDNode> c, int k) {
+	
+		if (T == null) {
+			return c;
+		}
+		KDNode left = T.getLeft();
+		KDNode right = T.getRight();
+	
+		if (left == null && right == null) {
+			//nothing happens
+	
+		} else if (left == null) {
+			c = BSTSearch(right, value, layer + 1, c, k);
+	
+		} else if (right == null) {
+			c = BSTSearch(left, value, layer + 1, c, k);
+	
+		} else {
+			//Choose which path to go down based on dimension
+			//Also get bounding dist between current node and child node
+	
+			boolean goLeft = false;
+			double divDist = 0;
+			if (layer%2 == 0) {
+				goLeft = T.getValue().lat < value.lat;
+				if (goLeft)
+					divDist = Math.abs(T.getValue().lat - value.lat);
+				else
+					divDist = Math.abs(T.getValue().lat - value.lat);
+			} else {
+				goLeft = T.getValue().lon < value.lon;
+				if (goLeft)
+					divDist = Math.abs(T.getValue().lon - value.lon);
+				else
+					divDist = Math.abs(T.getValue().lon - value.lon);
+			}
+	
+			if (goLeft) {
+				c = BSTSearch(left, value, layer + 1, c, k);
+				if (c.size() == 0 || divDist < c.get(c.size()-1).getValue().distTo(value))
+					c = BSTSearch(right, value, layer + 1, c, k);
+			} else {
+				c = BSTSearch(right, value, layer + 1, c, k);
+				if (c.size() == 0 || divDist < c.get(c.size()-1).getValue().distTo(value))
+					c = BSTSearch(left, value, layer + 1, c, k);
+			}
+		}
+	
+		if (value.cat.equals(T.getValue().cat)) {
+			if (c.size() == 0) {
+				c.add(T);
+			}
+			else if (c.size() < k) {
+				insertInOrder(T, c, value);
+			}
+			else {
+				for (int i = 0; i < c.size(); i++) {
+					if (c.get(i) != null) {
+						if (c.get(i).getValue().distTo(value) > T.getValue().distTo(value)) {
+							c.remove(i);
+							c = insertInOrder(T, c, value);
+						}
+						break;
+					}
+				}
+			}
+		}
+		return c;
+	}
+
+    public List<KDNode> insertInOrder(KDNode T, List<KDNode> c, Point value) {
+    	if (c.size() == 0)
+    		c.add(T);
+
+		for (int i = 0; i < c.size(); i++) {
+			if (c.get(i) != null) {
+				if (i == c.size()-1)
+					c.add(T);
+				else if (c.get(i).getValue().distTo(value) > T.getValue().distTo(value))
+					c.add(i, T);
+				else
+					continue;
+				break;
+			}
+		}
+		return c;
     }
     
     //Used for when a node with multiple children is deleted
     //Very unfinished? I don't know
     public KDNode getInnerLeftNode(KDNode root) {
+    	
+    	if (root == null)
+    		return null;
+    	
     	KDNode c = getInnerLeftNode(root.getLeft());
-    	if (c != null) {
+    	if (c != null)
     		return c;
-    	} else {
+    	else
     		return root;
-    	}
     }
     
     public KDNode getInnerRightNode(KDNode root) {
-    	KDNode c = getInnerRightNode(root.getLeft());
-    	if (c != null) {
+    	
+    	if (root == null)
+    		return null;
+    	
+    	KDNode c = getInnerRightNode(root.getRight());
+    	if (c != null)
     		return c;
-    	} else {
+    	else
     		return root;
-    	}
     }
 }
