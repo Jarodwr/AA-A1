@@ -48,20 +48,10 @@ public class KDTreeNN implements NearestNeigh{
         		}
         	}
     	} while(swapped);
-    	System.out.println();
-    	for (Point p : sortedByLon) {
-    		System.out.print("(lon: " + p.lon + ", lat: " + p.lat + "), ");
-    	}
-    	System.out.println();
-    	for (Point p : sortedByLat) {
-    		System.out.print("(lon: " + p.lon + ", lat: " + p.lat + "), ");
-    	}
-    	System.out.println();
-    	//Build with starting direction and starting list
-    	//rootOfTree = buildTree(sortedByLat, rootOfTree, 0);
+
     	rootE = buildTree(keepCat(Category.EDUCATION, sortedByLon), rootE, 0);
     	rootH = buildTree(keepCat(Category.HOSPITAL, sortedByLon), rootH, 0);
-    	rootR = buildTree(keepCat(Category.RESTAURANT, sortedByLon), rootR, 1);
+    	rootR = buildTree(keepCat(Category.RESTAURANT, sortedByLon), rootR, 0);
     }
     
     public List<Point> keepCat(Category k, List<Point> l) {
@@ -78,16 +68,9 @@ public class KDTreeNN implements NearestNeigh{
     	if (p.size() == 0) {
     		return null;
     	}
-    	for (Point a : p) {
-    		System.out.println(a);
-    	}
-    	System.out.println();
+
     	KDNode T = new KDNode(p.get((p.size()-1)/2), parent);
-//    	for (int i = 0; i < layer; i++) {
-//    		System.out.print("\t");
-//    	}
-    	System.out.println(T.getValue());
-    	System.out.println();
+
     	p.remove((p.size()-1)/2);
 
     	switch (p.size()) {
@@ -109,24 +92,30 @@ public class KDTreeNN implements NearestNeigh{
     		break;
 
     	default:
-    		if (layer % 2 == 0) {
-    			List<Point> temp = new ArrayList<Point>(sortedByLat);
-    			temp.retainAll(p);
-    			p = temp;
-    		} else {
-    			List<Point> temp = new ArrayList<Point>(sortedByLon);
-    			temp.retainAll(p);
-    			p = temp;
-    		}
-
     		List<Point> left = new ArrayList<Point>(p);
     		left = left.subList(0, (left.size()/2));
 
     		List<Point> right = new ArrayList<Point>(p);
     		right = right.subList((right.size()/2), right.size());
-
+    		
+    		if (layer % 2 == 0) {
+    			List<Point> tempL = new ArrayList<Point>(sortedByLat);
+    			tempL.retainAll(left);
+    			left = tempL;
+    			List<Point> tempR = new ArrayList<Point>(sortedByLat);
+    			tempR.retainAll(right);
+    			right = tempR;
+    		} else {
+    			List<Point> tempL = new ArrayList<Point>(sortedByLon);
+    			tempL.retainAll(left);
+    			left = tempL;
+    			List<Point> tempR = new ArrayList<Point>(sortedByLon);
+    			tempR.retainAll(right);
+    			right = tempR;
+    		}
     		T.setLeft(buildTree(left, T, layer+1));
     		T.setRight(buildTree(right, T, layer+1));
+
     	}
 
     	return T;
@@ -140,7 +129,6 @@ public class KDTreeNN implements NearestNeigh{
     	ArrayList<Point> points = new ArrayList<Point>();
     	for (int i = 0; i < results.size(); i++){
     		points.add(results.get(i).getValue());
-    		System.out.println(results.get(i).getValue());
     	}
         return points;
     }
@@ -252,13 +240,13 @@ public class KDTreeNN implements NearestNeigh{
 			boolean goLeft = false;
 			double divDist = 0;
 			if (layer%2 == 0) {
-				goLeft = T.getValue().lat < value.lat;
+				goLeft = T.getValue().lat <= value.lat;
 				if (goLeft)
 					divDist = Math.abs(T.getValue().lat - value.lat);
 				else
 					divDist = Math.abs(T.getValue().lat - value.lat);
 			} else {
-				goLeft = T.getValue().lon < value.lon;
+				goLeft = T.getValue().lon <= value.lon;
 				if (goLeft)
 					divDist = Math.abs(T.getValue().lon - value.lon);
 				else
@@ -267,16 +255,17 @@ public class KDTreeNN implements NearestNeigh{
 	
 			if (goLeft) {
 				c = BSTSearch(left, value, layer + 1, c, k);
-				if (c.size() == 0 || divDist < c.get(c.size()-1).getValue().distTo(value))
+				if (c.size() < k || divDist < c.get(0).getValue().distTo(value))
 					c = BSTSearch(right, value, layer + 1, c, k);
 			} else {
 				c = BSTSearch(right, value, layer + 1, c, k);
-				if (c.size() == 0 || divDist < c.get(c.size()-1).getValue().distTo(value))
+				if (c.size() < k || divDist < c.get(0).getValue().distTo(value))
 					c = BSTSearch(left, value, layer + 1, c, k);
 			}
 		}
 	
 		if (value.cat.equals(T.getValue().cat)) {
+			
 			if (c.size() == 0) {
 				c.add(T);
 			}
@@ -306,7 +295,7 @@ public class KDTreeNN implements NearestNeigh{
 			if (c.get(i) != null) {
 				if (i == c.size()-1)
 					c.add(T);
-				else if (c.get(i).getValue().distTo(value) > T.getValue().distTo(value))
+				else if (c.get(i).getValue().distTo(value) < T.getValue().distTo(value))
 					c.add(i, T);
 				else
 					continue;
