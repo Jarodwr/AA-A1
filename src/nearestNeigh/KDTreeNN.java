@@ -127,9 +127,8 @@ public class KDTreeNN implements NearestNeigh{
     	List<KDNode> results = new ArrayList<KDNode>();
     	results = BSTSearch(root, searchTerm, 0, results, k);
     	ArrayList<Point> points = new ArrayList<Point>();
-    	for (int i = 0; i < results.size(); i++){
+    	for (int i = results.size()-1; i >= 0; i--)
     		points.add(results.get(i).getValue());
-    	}
         return points;
     }
 
@@ -180,8 +179,8 @@ public class KDTreeNN implements NearestNeigh{
     public boolean deletePoint(Point point) {
     	List<KDNode> search = new ArrayList<KDNode>();
     	search = BSTSearch(getRelTree(point), point, 0, search, 1);
-    	
-    	KDNode n = search.get(search.size()-1);
+    	KDNode n = search.get(0);
+
         if (point.equals(n.getValue())) {
         	
         	KDNode a = null;
@@ -268,6 +267,12 @@ public class KDTreeNN implements NearestNeigh{
 			
 			if (c.size() == 0) {
 				c.add(T);
+			}
+			else if (k == 1) {
+				if (c.get(0).getValue().distTo(value) > T.getValue().distTo(value)) {
+					c.remove(0);
+					c.add(T);
+				}
 			}
 			else if (c.size() < k) {
 				insertInOrder(T, c, value);
