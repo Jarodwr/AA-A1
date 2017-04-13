@@ -10,14 +10,16 @@ import java.util.List;
  */
 public class KDTreeNN implements NearestNeigh{
 	List<Point> sortedByLat, sortedByLon;
-	KDNode rootOfTree;
+	KDNode rootE;
+	KDNode rootH;
+	KDNode rootR;
 	
     @Override
     public void buildIndex(List<Point> points) {
         //Bubblesort by latitude and longitude
     	//Bubblesort is placeholder, should be replaced with QSort
-    	sortedByLat = points;
-    	sortedByLon = points;
+    	sortedByLat = new ArrayList<Point>(points);
+    	sortedByLon = new ArrayList<Point>(points);
     	
     	boolean swapped = false;
     	
@@ -29,12 +31,8 @@ public class KDTreeNN implements NearestNeigh{
         		if (first.lat > second.lat) {
         			sortedByLat.remove(first);
         			sortedByLat.add(i+1, first);
-        			if (!swapped)
-        				swapped = true;
-        		} else {
-        			swapped = false;
+        			swapped = true;
         		}
-        		
         	}
     	} while(swapped);
     	
@@ -44,32 +42,113 @@ public class KDTreeNN implements NearestNeigh{
         		Point first = sortedByLon.get(i);
         		Point second = sortedByLon.get(i+1);
         		if (first.lon > second.lon) {
-        			sortedByLat.remove(first);
-        			sortedByLat.add(i+1, first);
-        			if (!swapped)
-        				swapped = true;
+        			sortedByLon.remove(first);
+        			sortedByLon.add(i+1, first);
+        			swapped = true;
         		}
         	}
     	} while(swapped);
-    	
+    	System.out.println();
+    	for (Point p : sortedByLon) {
+    		System.out.print("(lon: " + p.lon + ", lat: " + p.lat + "), ");
+    	}
+    	System.out.println();
+    	for (Point p : sortedByLat) {
+    		System.out.print("(lon: " + p.lon + ", lat: " + p.lat + "), ");
+    	}
+    	System.out.println();
     	//Build with starting direction and starting list
-    	rootOfTree = buildTree(sortedByLat, rootOfTree, 0);
+    	//rootOfTree = buildTree(sortedByLat, rootOfTree, 0);
+    	rootE = buildTree(keepCat(Category.EDUCATION, sortedByLon), rootE, 0);
+    	rootH = buildTree(keepCat(Category.HOSPITAL, sortedByLon), rootH, 0);
+    	rootR = buildTree(keepCat(Category.RESTAURANT, sortedByLon), rootR, 1);
     }
+    
+    public List<Point> keepCat(Category k, List<Point> l) {
+    	List<Point> rl = new ArrayList<Point>();
+    	for (int i = 0; i < l.size(); i++) {
+    		if (l.get(i).cat.equals(k))
+    			rl.add(l.get(i));
+    	}
+    	return rl;
+    }
+    
+    public KDNode buildTree(List<Point> p, KDNode parent, int layer) {
 
+    	if (p.size() == 0) {
+    		return null;
+    	}
+    	for (Point a : p) {
+    		System.out.println(a);
+    	}
+    	System.out.println();
+    	KDNode T = new KDNode(p.get((p.size()-1)/2), parent);
+//    	for (int i = 0; i < layer; i++) {
+//    		System.out.print("\t");
+//    	}
+    	System.out.println(T.getValue());
+    	System.out.println();
+    	p.remove((p.size()-1)/2);
+
+    	switch (p.size()) {
+
+    	case 0:
+    		break;
+
+    	case 1:
+    		boolean isLeft;
+    		if (layer % 2 == 0)
+    			isLeft = p.get(0).lon > T.getValue().lon;
+    		else
+    			isLeft = p.get(0).lat > T.getValue().lat;
+
+    		if (isLeft)
+    			T.setLeft(buildTree(p, T, layer+1));
+    		else
+    			T.setRight(buildTree(p, T, layer+1));
+    		break;
+
+    	default:
+    		if (layer % 2 == 0) {
+    			List<Point> temp = new ArrayList<Point>(sortedByLat);
+    			temp.retainAll(p);
+    			p = temp;
+    		} else {
+    			List<Point> temp = new ArrayList<Point>(sortedByLon);
+    			temp.retainAll(p);
+    			p = temp;
+    		}
+
+    		List<Point> left = new ArrayList<Point>(p);
+    		left = left.subList(0, (left.size()/2));
+
+    		List<Point> right = new ArrayList<Point>(p);
+    		right = right.subList((right.size()/2), right.size());
+
+    		T.setLeft(buildTree(left, T, layer+1));
+    		T.setRight(buildTree(right, T, layer+1));
+    	}
+
+    	return T;
+    }
+    
     @Override
     public List<Point> search(Point searchTerm, int k) {
+    	KDNode root = getRelTree(searchTerm);
     	List<KDNode> results = new ArrayList<KDNode>();
-    	results = BSTSearch(rootOfTree, searchTerm, 0, results, k);
+    	results = BSTSearch(root, searchTerm, 0, results, k);
     	ArrayList<Point> points = new ArrayList<Point>();
-    	for (int i = 0; i < results.size(); i++)
+    	for (int i = 0; i < results.size(); i++){
     		points.add(results.get(i).getValue());
+    		System.out.println(results.get(i).getValue());
+    	}
         return points;
     }
 
     @Override
     public boolean addPoint(Point point) {
     	if (!isPointIn(point))
-    		addToTree(rootOfTree, point, 0);
+    		addToTree(getRelTree(point), point, 0);
     	else
     		return false;
     	return true;
@@ -93,16 +172,18 @@ public class KDTreeNN implements NearestNeigh{
     			T.setRight(new KDNode(value, T));
     		
     	} else {
-    		if (goLeft)
+    		if (goLeft) {
     			if (left != null)
     				return addToTree(left, value, layer+1);
     			else
     				return addToTree(right, value, layer+1);
-    		else
+    			
+    		} else {
     			if (right != null)
     				return addToTree(right, value, layer+1);
     			else
     				return addToTree(left, value, layer+1);
+    		}
     	}
     	return T;
     }
@@ -110,7 +191,7 @@ public class KDTreeNN implements NearestNeigh{
     @Override
     public boolean deletePoint(Point point) {
     	List<KDNode> search = new ArrayList<KDNode>();
-    	search = BSTSearch(rootOfTree, point, 0, search, 1);
+    	search = BSTSearch(getRelTree(point), point, 0, search, 1);
     	
     	KDNode n = search.get(search.size()-1);
         if (point.equals(n.getValue())) {
@@ -140,59 +221,11 @@ public class KDTreeNN implements NearestNeigh{
 
     @Override
     public boolean isPointIn(Point point) {
-        return point.equals(search(point, 1).get(0));
-    }
-
-    public KDNode buildTree(List<Point> p, KDNode parent, int layer) {
-
-    	if (p.size() == 0) {
-    		return null;
-    	}
-    	KDNode T = new KDNode(p.get(p.size()/2), parent);
-    	p.remove(p.size()/2);
-
-    	switch (p.size()) {
-
-    	case 0:
-    		break;
-
-    	case 1:
-    		Point leaf = p.get(0);
-
-    		boolean isLeft;
-    		if (layer % 2 == 0)
-    			isLeft = leaf.lon > T.getValue().lon;
-    		else
-    			isLeft = leaf.lat > T.getValue().lat;
-
-    		if (isLeft)
-    			T.setLeft(new KDNode(leaf, T));
-    		else
-    			T.setRight(new KDNode(leaf, T));
-    		break;
-
-    	default:
-    		if (layer % 2 == 0) {
-    			List<Point> temp = new ArrayList<Point>(sortedByLat);
-    			temp.retainAll(p);
-    			p = temp;
-    		} else {
-    			List<Point> temp = new ArrayList<Point>(sortedByLon);
-    			temp.retainAll(p);
-    			p = temp;
-    		}
-
-    		List<Point> left = new ArrayList<Point>(p);
-    		left = left.subList(0, ((left.size())/2) - 1);
-
-    		List<Point> right = new ArrayList<Point>(p);
-    		right = right.subList(right.size()/2, right.size());
-
-    		T.setLeft(buildTree(left, T, layer+1));
-    		T.setRight(buildTree(right, T, layer+1));
-    	}
-
-    	return T;
+    	List<Point> search = search(point, 1);
+    	if (search.size() > 0)
+    		return point.equals(search.get(0));
+    	return false;
+        
     }
     
 	List<KDNode> BSTSearch(KDNode T, Point value, int layer, List<KDNode> c, int k) {
@@ -284,7 +317,6 @@ public class KDTreeNN implements NearestNeigh{
     }
     
     //Used for when a node with multiple children is deleted
-    //Very unfinished? I don't know
     public KDNode getInnerLeftNode(KDNode root) {
     	
     	if (root == null)
@@ -307,5 +339,14 @@ public class KDTreeNN implements NearestNeigh{
     		return c;
     	else
     		return root;
+    }
+    
+    public KDNode getRelTree(Point point) {
+    	switch (point.cat) {
+    	case EDUCATION: return rootE;
+    	case RESTAURANT: return rootR;
+    	case HOSPITAL:return rootH;
+    	default: return null;
+    	}
     }
 }
