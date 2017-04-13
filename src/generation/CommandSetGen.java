@@ -24,23 +24,30 @@ public class CommandSetGen {
 	}
 	
 	public static void testAdditionRemovalEffect(int amountOfTests, String inputSampleData, String outputTestPrefix) throws FileNotFoundException {
-
-		for(int i = 0; i < amountOfTests; i++) { // each additional test adds 100 points, call 3-4 times i guess
-	        File outputFile = new File(outputTestPrefix + (i + 1) + ".in");
-	        PrintWriter writer = new PrintWriter(outputFile);
-	        for(int j = 0; j < i * 100; j++) {
-		        writer.println(randomAdditionPoint(j + "a", "restaurant"));
-		        writer.println(randomDeletionPoint(inputSampleData));
-	        }
-	        writer.println(randomSearch(1, "restaurant"));
-	        writer.println(randomSearch(10, "restaurant"));	
-	        
-				
-		}
 		
+		for(int i = 1; i < (amountOfTests*2); i++) { // each additional test adds 100 points, call 3-4 times i guess
+			
+			if (i % 2 == 0) {	    
+				File outputFile = new File(outputTestPrefix + "_" + (i) + "_additiondeletion" + ".in");
+		        PrintWriter writer = new PrintWriter(outputFile);
+		        for(int j = 0; j < i * 50; j++) {
+			        writer.println(randomAdditionPoint(j + "a", "restaurant"));
+			        writer.println(randomDeletionPoint(inputSampleData, "restaurant"));
+		        }
+		        
+		        
+	
+				writer.close();
+			}
+			else {
+				File outputFile = new File(outputTestPrefix + "_" +(i) + "_search" + ".in");
+		        PrintWriter writer = new PrintWriter(outputFile);
+		        writer.println(randomSearch(10, "restaurant"));	
+			}
+		}
 	}
 	
-	private static String randomDeletionPoint(String sampleData) {
+	private static String randomDeletionPoint(String sampleData, String category) {
         List<Point> points = new ArrayList<Point>();
         try {
             File dataFile = new File(sampleData);
@@ -56,8 +63,18 @@ public class CommandSetGen {
         	return null;
         }
         Random r = new Random();
-        Point randompoint = points.get(r.nextInt(points.size()) - 1);
-		String s = "D " + "id" + randompoint.id + " " + randompoint.cat + " " + randompoint.lat + " " + randompoint.lon;
+        Point randompoint;
+		String s;
+        if (category == "") {
+            randompoint = points.get(r.nextInt(points.size()) - 1);
+    		s = "D " + "id" + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
+        }
+        else {
+        	 do {
+                randompoint = points.get(r.nextInt(points.size()) - 1);
+        		s = "D " + "id" + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
+        	} while(randompoint.cat.toString() != category);
+        }
 		
 		return s;
 	}
@@ -74,7 +91,7 @@ public class CommandSetGen {
 	
 		        writer.println(randomSearch(-1, "hospital"));
 	        }
-				
+	        writer.close();
 		}
 	}
 	
