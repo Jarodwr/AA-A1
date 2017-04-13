@@ -20,6 +20,12 @@ public class CommandSetGen {
 	public static final String[] categories = {"hospital", "restaurant", "education"};
 	
 	public static void main(String[] args) {
+		try {
+			testAdditionRemovalEffect(5, args[0], args[1]);
+			testVarianceOfKValue(4, args[2]);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 		
 	}
 	
@@ -41,27 +47,24 @@ public class CommandSetGen {
 			}
 			else {
 				File outputFile = new File(outputTestPrefix + "_" +(i) + "_search" + ".in");
-		        PrintWriter writer = new PrintWriter(outputFile);
-		        writer.println(randomSearch(10, "restaurant"));	
+		        PrintWriter writer2 = new PrintWriter(outputFile);
+		        writer2.println(randomSearch(10, "restaurant"));	
+		        writer2.close();
 			}
 		}
 	}
 	
-	private static String randomDeletionPoint(String sampleData, String category) {
+	private static String randomDeletionPoint(String sampleData, String category) throws FileNotFoundException {
         List<Point> points = new ArrayList<Point>();
-        try {
-            File dataFile = new File(sampleData);
-            Scanner scanner = new Scanner(dataFile);
-            while (scanner.hasNext()) {
-                String id = scanner.next();
-                Category cat = Point.parseCat(scanner.next());
-                Point point = new Point(id, cat, scanner.nextDouble(), scanner.nextDouble());
-                points.add(point);
-            }
-            scanner.close();
-        } catch (FileNotFoundException e) {
-        	return null;
+        File dataFile = new File(sampleData);
+        Scanner scanner = new Scanner(dataFile);
+        while (scanner.hasNext()) {
+            String id = scanner.next();
+            Category cat = Point.parseCat(scanner.next());
+            Point point = new Point(id, cat, scanner.nextDouble(), scanner.nextDouble());
+            points.add(point);
         }
+            scanner.close();
         Random r = new Random();
         Point randompoint;
 		String s;
@@ -83,14 +86,14 @@ public class CommandSetGen {
 		for(int i = 0; i < amountOfTests; i++) { 
 	        File outputFile = new File(outputTestPrefix + (i + 1) + ".in");
 	        PrintWriter writer = new PrintWriter(outputFile);
+	        // increase searches by 30 for each test
 	        Random r = new Random();
-	        for (int j = 0; i < (i + 1) * 10; i++) {	     // increase searches by 30 for each test
-		        writer.println(randomSearch(-1, "restaurant"));
+	        int k = r.nextInt(149) + 1; // any value between 1 and 150
+		    writer.println(randomSearch(k, "restaurant"));
 	
-		        writer.println(randomSearch(-1, "education"));
+		    writer.println(randomSearch(k, "education"));
 	
-		        writer.println(randomSearch(-1, "hospital"));
-	        }
+		    writer.println(randomSearch(k, "hospital"));
 	        writer.close();
 		}
 	}
