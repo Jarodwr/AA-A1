@@ -32,10 +32,9 @@ public class CommandSetGen {
 	public static void testAdditionRemovalEffect(int amountOfTests, String inputSampleData, String outputTestPrefix) throws FileNotFoundException {
 		
 		for(int i = 1; i < (amountOfTests*2); i++) { // each additional test adds 100 points, call 3-4 times i guess
-			
+			File outputFile = new File(outputTestPrefix + "_" + (i) + ".in");
+	        PrintWriter writer = new PrintWriter(outputFile);
 			if (i % 2 == 0) {	    
-				File outputFile = new File(outputTestPrefix + "_" + (i) + "_additiondeletion" + ".in");
-		        PrintWriter writer = new PrintWriter(outputFile);
 		        for(int j = 0; j < i * 50; j++) {
 			        writer.println(randomAdditionPoint(j + "a", "restaurant"));
 			        writer.println(randomDeletionPoint(inputSampleData, "restaurant"));
@@ -46,10 +45,8 @@ public class CommandSetGen {
 				writer.close();
 			}
 			else {
-				File outputFile = new File(outputTestPrefix + "_" +(i) + "_search" + ".in");
-		        PrintWriter writer2 = new PrintWriter(outputFile);
-		        writer2.println(randomSearch(10, "restaurant"));	
-		        writer2.close();
+		        writer.println(randomSearch(10, "restaurant"));	
+		        writer.close();
 			}
 		}
 	}
