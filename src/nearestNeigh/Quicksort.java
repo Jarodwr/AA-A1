@@ -7,8 +7,6 @@ public class Quicksort {
 	
 	public static List<Point> byLat(List<Point> l, int low, int high) {
 
-		if (high - low == 1)
-			return l;
 		
 		int lowWall = low;
 		int highWall = high;
@@ -24,9 +22,9 @@ public class Quicksort {
 			if (lowWall <= highWall)
 				Collections.swap(l, lowWall, highWall);
 		}
-		if (low < lowWall)
+		if (low + 1 < lowWall)
 			byLat(l, low, lowWall);
-		if (high > highWall)
+		if (high > highWall + 1)
 			byLat(l, highWall, high);
 		return l;
 	}
