@@ -149,37 +149,36 @@ public class KDTreeNN implements NearestNeigh{
     	search = BSTSearch(getRelTree(point), point, 1, search, true);	// Check that the point exists in the tree
     	KDNode n = search.get(0);
 
+    	KDNode a;
         if (point.equals(n.value)) {
-        	
         	if (n.left == null && n.right == null) {	//	If the node to be deleted has no children, delete it outright
         		if (n.equals(n.parent.left))	//	find out whether the deleted node is the left or right node of its parent
             		n.parent.left = null;	//	update parent reference
             	else
             		n.parent.right = null;	//	update parent reference
         		
-        	} else if (n.left == null) {	//If the node has only a right child, replace the deleted node with the right child
-        		n.parent.right = n.right;	//update parent reference
-        		n.right.parent = n.parent;	//update child reference
-        		
-        	} else if (n.right == null) {	//If the node has only a left child, replace the deleted node with the right child
-        		n.parent.left = n.left;	//update parent reference
-        		n.left.parent = n.parent;	//update child reference
-        		
-        	} else {	//If the node has 2 children
-            	KDNode a = getInnerLeftNode(n.right);	// Set the replacement to be the innermost child node
-            	
-            	deletePoint(a.value);	// Delete the original node of the replacement
-            	
-            	if (n.equals(n.parent.left))	// Update parent references
+        	} else if (n.left == null) {	//	If the node has only a right child, replace the deleted node with the right child
+        		a = n.right;
+            	if (n.equals(n.parent.left))	//	Update parent references
             		n.parent.left = a;
             	else
             		n.parent.right = a;
+        		a.parent = n.parent;	//	update child reference
+        		
+        	} else if (n.right == null) {	//	If the node has only a left child, replace the deleted node with the right child
+        		a = n.left;
+            	if (n.equals(n.parent.left))	//	Update parent references
+            		n.parent.left = a;
+            	else
+            		n.parent.right = a;
+        		a.parent = n.parent;	//	update child reference
+        		
+        	} else {	//	If the node has 2 children
+            	a = getInnerLeftNode(n.right);	//	Set the replacement to be the innermost child node
             	
-            	//update the replacement node's references
-            	//TODO: look over this
-       			a.parent = n.parent;
-       			a.left = n.left;
-       			a.right = n.right;
+            	deletePoint(a.value);	//	Delete the original node of the replacement
+            	
+            	n.value = a.value;
         	}
         	long endtime = System.currentTimeMillis();
         	System.out.println("Delete\t| Total: " + (endtime - starttime));
@@ -219,7 +218,6 @@ public class KDTreeNN implements NearestNeigh{
 		} else {
 			//Choose which path to go down based on layer number
 			//Also get bounding dist between current node and child node
-	
 			boolean goLeft = false;
 			double divDist = 0;	//	Get distance in the relevant dimension from the current node to the search
 			if (lon) {	//	Check which branch to search based on the current layer
@@ -230,7 +228,6 @@ public class KDTreeNN implements NearestNeigh{
 				goLeft = T.value.lon <= value.lon;
 				divDist = Math.abs(T.value.lon - value.lon);
 			}
-	
 			if (goLeft) {
 				c = BSTSearch(left, value, k, c, !lon);	//	Search the branch
 				//	If there aren't enough entries in the results OR alternate branch could 
@@ -239,8 +236,9 @@ public class KDTreeNN implements NearestNeigh{
 					c = BSTSearch(right, value, k, c, !lon);	//	Search alternate branch
 			} else {
 				c = BSTSearch(right, value, k, c, !lon);
-				if (c.size() < k || divDist < c.get(0).value.distTo(value))
+				if (c.size() < k || divDist < c.get(0).value.distTo(value)) {
 					c = BSTSearch(left, value, k, c, !lon);
+				}
 			}
 		}
 	
@@ -310,5 +308,23 @@ public class KDTreeNN implements NearestNeigh{
     	case HOSPITAL:return rootH;
     	default: return null;
     	}
+    }
+    
+    public void printChildren(KDNode T) {
+    	System.out.println(T.value.id);
+		if (T.left != null) {
+			System.out.println("\tleft: " + T.left.value.id);
+			if (T.left.left != null)
+				System.out.println("\t\tleft: " + T.left.left.value.id);
+			if (T.left.right != null)
+				System.out.println("\t\tright: " + T.left.right.value.id);
+		}
+		if (T.right != null) {
+			System.out.println("\tright: " + T.right.value.id);
+			if (T.right.left != null)
+				System.out.println("\t\tleft: " + T.right.left.value.id);
+			if (T.right.right != null)
+				System.out.println("\t\tright: " + T.right.right.value.id);
+		}
     }
 }
