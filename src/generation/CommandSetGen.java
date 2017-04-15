@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
@@ -21,7 +22,17 @@ public class CommandSetGen {
 	
 	public static void main(String[] args) {
 		try {
-			testAdditionRemovalEffect(5, args[0], args[1]);
+			 List<Point> points = new ArrayList<Point>();
+		        File dataFile = new File(args[0]);
+		        Scanner scanner = new Scanner(dataFile);
+		        while (scanner.hasNext()) {
+		            String id = scanner.next();
+		            Category cat = Point.parseCat(scanner.next());
+		            Point point = new Point(id, cat, scanner.nextDouble(), scanner.nextDouble());
+		            points.add(point);
+		        }
+		            scanner.close();
+			testAdditionRemovalEffect(points, args[1]);
 			testVarianceOfKValue(4, args[2]);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -29,51 +40,45 @@ public class CommandSetGen {
 		
 	}
 	
-	public static void testAdditionRemovalEffect(int amountOfTests, String inputSampleData, String outputTestPrefix) throws FileNotFoundException {
-		
-		for(int i = 1; i < (amountOfTests*2); i++) { // each additional test adds 100 points, call 3-4 times i guess
+	public static void testAdditionRemovalEffect(List<Point> points, String outputTestPrefix) throws FileNotFoundException {
+		String s = "";
+		for(int i = 0; i < (10); i++) {
 			File outputFile = new File(outputTestPrefix + "_" + (i) + ".in");
 	        PrintWriter writer = new PrintWriter(outputFile);
-			if (i % 2 == 0) {	    
-		        for(int j = 0; j < i * 50; j++) {
-			        writer.println(randomAdditionPoint(j + "a", "restaurant"));
-			        writer.println(randomDeletionPoint(inputSampleData, "restaurant"));
+			if (i % 2 == 0 || i == 0) {
+				String t = "";
+		        for(int j = 0; j < (i + 1) * 50; j++) {
+			        t = t + randomAdditionPoint(j + "a", "restaurant") + "\n";
+			        t = t + randomDeletionPoint(points, "restaurant") + "\n";
 		        }
-		        
-		        
-	
-				writer.close();
+		        s = s + t;
 			}
+					
+
 			else {
-		        writer.println(randomSearch(10, "restaurant"));	
-		        writer.close();
+				String rs = randomSearch(10, "restaurant") + "\n";
+				s = s + rs;
 			}
+			writer.println(s);
+			writer.close();
 		}
 	}
 	
-	private static String randomDeletionPoint(String sampleData, String category) throws FileNotFoundException {
-        List<Point> points = new ArrayList<Point>();
-        File dataFile = new File(sampleData);
-        Scanner scanner = new Scanner(dataFile);
-        while (scanner.hasNext()) {
-            String id = scanner.next();
-            Category cat = Point.parseCat(scanner.next());
-            Point point = new Point(id, cat, scanner.nextDouble(), scanner.nextDouble());
-            points.add(point);
-        }
-            scanner.close();
+	private static String randomDeletionPoint(List<Point> points, String category) throws FileNotFoundException {
+       
         Random r = new Random();
         Point randompoint;
 		String s;
         if (category == "") {
-            randompoint = points.get(r.nextInt(points.size()) - 1);
-    		s = "D " + "id" + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
+        	System.out.println("No category");
+            randompoint = points.get(r.nextInt(points.size()-1));
+    		s = "D " + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
         }
         else {
         	 do {
-                randompoint = points.get(r.nextInt(points.size()) - 1);
-        		s = "D " + "id" + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
-        	} while(randompoint.cat.toString() != category);
+                randompoint = points.get(r.nextInt(points.size()-1));
+        		s = "D " + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
+        	} while(randompoint.cat != Point.parseCat(category));
         }
 		
 		return s;
@@ -81,6 +86,7 @@ public class CommandSetGen {
 
 	public static void testVarianceOfKValue(int amountOfTests, String outputTestPrefix) throws FileNotFoundException {
 		for(int i = 0; i < amountOfTests; i++) { 
+			System.out.println("Printing Variance of KValue effect test " +(i+1));
 	        File outputFile = new File(outputTestPrefix + (i + 1) + ".in");
 	        PrintWriter writer = new PrintWriter(outputFile);
 	        // increase searches by 30 for each test
