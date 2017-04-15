@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class NaiveNN implements NearestNeigh{
 
-    private ArrayList<Point> Index = new ArrayList<Point>();
+    private List<Point> Index = new ArrayList<Point>();
 
 	@Override
     public void buildIndex(List<Point> points) {
@@ -24,8 +24,8 @@ public class NaiveNN implements NearestNeigh{
     public List<Point> search(Point searchTerm, int k) {
     	ArrayList<Point> returnPoints = new ArrayList<Point>();
     	Category categ = searchTerm.cat;
-    	Boolean didSwapOccur = false;
-    	Point temp;
+    	//Boolean didSwapOccur = false;
+    	//Point temp;
     	
     	if (this.Index.size() < k) { // if the list of points is less than k we would get stuck in an loop
     		k = this.Index.size();
@@ -37,6 +37,9 @@ public class NaiveNN implements NearestNeigh{
     			iter.remove();
     		}
     	}
+    	
+    	
+    	/* BUBBLE SORT - code kept for historical purposes, now replaced by quicksort function
     	while(true) { // swap function
     		didSwapOccur = false;
     		if (this.Index.size() == 1 || this.Index.size() == 0) {
@@ -53,7 +56,11 @@ public class NaiveNN implements NearestNeigh{
     		if (didSwapOccur == false) {
     			break;
     		}
-    	}
+    	} */
+    	
+    	Quicksort.byDist(this.Index, searchTerm, 0, this.Index.size() - 1 ); // Quicksort to replace bubble sort, much faster
+    	
+    	
         for (int i = 0; i < k; i++){
         		returnPoints.add(this.Index.get(i));
         }

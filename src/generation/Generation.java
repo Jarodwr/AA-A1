@@ -12,16 +12,16 @@ import nearestNeigh.Point;
 public class Generation {
 	public static void main(String[] args) {
 		try {
-			String smallData ="smallDataSet.txt";
-			String mediumData = "mediumDataSet.txt";
-			String largeData = "LargeDataSet.txt";
+			String smallData ="testing/smallDataSet.txt";
+			String mediumData = "testing/mediumDataSet.txt";
+			String largeData = "testing/LargeDataSet.txt";
 			DataSetGen.generateDataSet(1000, smallData);
 			DataSetGen.generateDataSet(2500, mediumData);
 			DataSetGen.generateDataSet(7000, largeData);
 
-			CommandSetGen.testAdditionRemovalEffect(txtFileIntoList(smallData), "smalldataset_additionremovaltest");
-			CommandSetGen.testAdditionRemovalEffect(txtFileIntoList(mediumData), "mediumdataset_additionremovaltest");
-			CommandSetGen.testAdditionRemovalEffect(txtFileIntoList(largeData), "largedataset_additionremovaltest");
+			CommandSetGen.testAdditionRemovalEffect(txtFileIntoList(smallData), "testing/smalldataset_additionremovaltest");
+			CommandSetGen.testAdditionRemovalEffect(txtFileIntoList(mediumData), "testing/mediumdataset_additionremovaltest");
+			CommandSetGen.testAdditionRemovalEffect(txtFileIntoList(largeData), "testing/largedataset_additionremovaltest");
 		
 			CommandSetGen.testVarianceOfKValue(4, "kvariancetest");
 			
