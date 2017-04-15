@@ -11,7 +11,11 @@ import java.util.List;
  */
 public class NaiveNN implements NearestNeigh{
 
-    private List<Point> Index = new ArrayList<Point>();
+    private ArrayList<Point> RestaurantIndex = new ArrayList<Point>();
+
+    private ArrayList<Point> EducationIndex = new ArrayList<Point>();
+
+    private ArrayList<Point> HospitalIndex = new ArrayList<Point>();
 
 	@Override
     public void buildIndex(List<Point> points) {
@@ -26,88 +30,154 @@ public class NaiveNN implements NearestNeigh{
     	Category categ = searchTerm.cat;
     	//Boolean didSwapOccur = false;
     	//Point temp;
-    	
-    	if (this.Index.size() < k) { // if the list of points is less than k we would get stuck in an loop
-    		k = this.Index.size();
+    	ArrayList<Point> index;
+    	if (searchTerm.cat == Category.RESTAURANT) {
+
+    		index = RestaurantIndex;
     	}
-    	Iterator<Point> iter = this.Index.iterator();
-    	while (iter.hasNext()) {
-    		Point p = iter.next();
-    		if (!(p.cat.equals(categ))) { // remove points that aren't the same category
-    			iter.remove();
-    		}
+    	else if (searchTerm.cat == Category.EDUCATION) {
+    		index = EducationIndex;
+    	}
+    	else {
+    		index = HospitalIndex;
     	}
     	
     	
-    	/* BUBBLE SORT - code kept for historical purposes, now replaced by quicksort function 
+    	if (index.size() < k) { // if the list of points is less than k we would get stuck in an loop
+    		k = index.size();
+    	}
+    	/*
     	while(true) { // swap function
     		didSwapOccur = false;
-    		if (this.Index.size() == 1 || this.Index.size() == 0) {
+    		if (index.size() == 1 || index.size() == 0) {
     			break; // no need to change anything
     		}
-    		for(int j = 1; j < this.Index.size() - 1; j++) {
-    			 if( searchTerm.distTo(this.Index.get(j)) < searchTerm.distTo(this.Index.get(j - 1)) ) {
-    				 temp = this.Index.get(j);
-    				 this.Index.set(j, this.Index.get(j - 1));
-    				 this.Index.set(j - 1, temp);
+    		for(int j = 1; j < index.size() - 1; j++) {
+    			 if( searchTerm.distTo(index.get(j)) < searchTerm.distTo(index.get(j - 1)) ) {
+    				 temp = index.get(j);
+    				 index.set(j, index.get(j - 1));
+    				 index.set(j - 1, temp);
     				 didSwapOccur = true; // if no swap occurs then we're already done
     			 }
     		}
     		if (didSwapOccur == false) {
     			break;
     		}
-    	} 
+    	}
     	*/
-    	Quicksort.byDist(this.Index, searchTerm, 0, this.Index.size()); // Quicksort to replace bubble sort, much faster
     	
-    	if (k != 1) {
-	        for (int i = 0; i < k; i++){
-	        		returnPoints.add(this.Index.get(i));
-	        }
-    	}
-    	else {
-    		returnPoints.add(this.Index.get(0));
-    	}
+    	Quicksort.byDist(index, searchTerm, 0, index.size() - 1);
+    	
+        for (int i = 0; i < k; i++){
+        		returnPoints.add(index.get(i));
+        }
     	return returnPoints;
     }
 
 
 	@Override
     public boolean addPoint(Point point) {
-		if (this.Index.size() == 0) {
-			this.Index.add(point);
-			return true;
+		if(point.cat == Category.RESTAURANT) {
+			if (this.RestaurantIndex.size() == 0) {
+				this.RestaurantIndex.add(point);
+				return true;
+			}
+			if (isPointIn(point)) {
+				return false;
+			}
+	        this.RestaurantIndex.add(point);
+	        return true;
 		}
-		if (isPointIn(point)) {
-			return false;
+		else if(point.cat == Category.HOSPITAL) {
+			if (this.HospitalIndex.size() == 0) {
+				this.HospitalIndex.add(point);
+				return true;
+			}
+			if (isPointIn(point)) {
+				return false;
+			}
+	        this.HospitalIndex.add(point);
+	        return true;
 		}
-        this.Index.add(point);
-        return true;
+		else {
+			if (this.EducationIndex.size() == 0) {
+				this.EducationIndex.add(point);
+				return true;
+			}
+			if (isPointIn(point)) {
+				return false;
+			}
+	        this.EducationIndex.add(point);
+	        return true;
+		}
     }
 
     @Override
     public boolean deletePoint(Point point) {
-       Iterator<Point> iter = this.Index.iterator();
-       while(iter.hasNext()) {
-    	   Point p = iter.next();
-    	   if (p.equals(point)) {
-    		   iter.remove();
-    		   return true;
-    	   }
-        }
-        return false;
+    	if (point.cat == Category.EDUCATION) {
+    		 Iterator<Point> iter = this.EducationIndex.iterator();
+    	       while(iter.hasNext()) {
+    	    	   Point p = iter.next();
+    	    	   if (p.equals(point)) {
+    	    		   iter.remove();
+    	    		   return true;
+    	    	   }
+    	        }
+    	        return false;
+    	} else if (point.cat == Category.RESTAURANT) {
+   		 Iterator<Point> iter = this.RestaurantIndex.iterator();
+	       while(iter.hasNext()) {
+	    	   Point p = iter.next();
+	    	   if (p.equals(point)) {
+	    		   iter.remove();
+	    		   return true;
+	    	   }
+	        }
+	        return false;
+    	} else {
+    		Iterator<Point> iter = this.HospitalIndex.iterator();
+ 	       while(iter.hasNext()) {
+ 	    	   Point p = iter.next();
+ 	    	   if (p.equals(point)) {
+ 	    		   iter.remove();
+ 	    		   return true;
+ 	    	   }
+ 	        }
+ 	        return false;
+    	}
+      
     }
 
     @Override
     public boolean isPointIn(Point point) {
-    	Iterator<Point> iter = this.Index.iterator();
-    	while (iter.hasNext()) {
-    		Point p = iter.next();
-    		if (p.equals(point)) {
-    			return true;
-    		}
-    	}
-    	return false;
+    	if (point.cat == Category.EDUCATION) {
+   		 Iterator<Point> iter = this.EducationIndex.iterator();
+   	       while(iter.hasNext()) {
+   	    	   Point p = iter.next();
+   	    	   if (p.equals(point)) {
+   	    		   return true;
+   	    	   }
+   	        }
+   	        return false;
+   	} else if (point.cat == Category.RESTAURANT) {
+  		 Iterator<Point> iter = this.RestaurantIndex.iterator();
+	       while(iter.hasNext()) {
+	    	   Point p = iter.next();
+	    	   if (p.equals(point)) {
+	    		   return true;
+	    	   }
+	        }
+	        return false;
+   	} else {
+   		Iterator<Point> iter = this.HospitalIndex.iterator();
+	       while(iter.hasNext()) {
+	    	   Point p = iter.next();
+	    	   if (p.equals(point)) {
+	    		   return true;
+	    	   }
+	        }
+	        return false;
+   	}
     }
 
 }
