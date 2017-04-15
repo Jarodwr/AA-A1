@@ -13,16 +13,12 @@ public class KDTreeNN implements NearestNeigh{
 	
     @Override
     public void buildIndex(List<Point> points) {
-    	long starttime = System.currentTimeMillis();
     	List<Point> sortedByLon = new ArrayList<Point>(points);	//Will eventually get rid of this and embed into recursive build
     	sortedByLon = Quicksort.byLon(sortedByLon, 0, sortedByLon.size()-1);
 
-    	long recursivetime = System.currentTimeMillis();
     	rootE = buildTree(keepCat(Category.EDUCATION, sortedByLon), rootE, true);
     	rootH = buildTree(keepCat(Category.HOSPITAL, sortedByLon), rootH, true);
     	rootR = buildTree(keepCat(Category.RESTAURANT, sortedByLon), rootR, true);
-    	long endtime = System.currentTimeMillis();
-    	System.out.println("Build\t| Total: " + (endtime - starttime) + ", List sort: " + (recursivetime - starttime) + ", Recursive: " + (endtime - recursivetime) + ", Size: " + sortedByLon.size());
     }
     
     //Restrict a list of points to a certain category
@@ -80,7 +76,6 @@ public class KDTreeNN implements NearestNeigh{
     
     @Override
     public List<Point> search(Point searchTerm, int k) {
-    	long starttime = System.currentTimeMillis();
     	KDNode root = getRelTree(searchTerm);
     	List<KDNode> nodes = new ArrayList<KDNode>();
     	nodes = BSTSearch(root, searchTerm, k, nodes, true);
@@ -88,22 +83,15 @@ public class KDTreeNN implements NearestNeigh{
     	
     	for (int i = nodes.size()-1; i >= 0; i--)	//	Populate results with points from nodes
     		results.add(nodes.get(i).value);
-    	long endtime = System.currentTimeMillis();
-    	System.out.println("Search\t| Total: " + (endtime - starttime) + ", K: " + k);
         return results;
     }
 
     @Override
     public boolean addPoint(Point point) {
-    	System.out.print("\t");
-    	long starttime = System.currentTimeMillis();
-    	if (!isPointIn(point)){	// Check that the point doesn't already exist
+    	if (!isPointIn(point))	// Check that the point doesn't already exist
     		addToTree(getRelTree(point), point, true);	// Add the point to the tree
-    		long endtime = System.currentTimeMillis();
-    		System.out.println("Add\t| Total: " + (endtime - starttime));
-    	} else {
+    	else
     		return false;
-    	}
     	return true;
     }
 
@@ -144,7 +132,6 @@ public class KDTreeNN implements NearestNeigh{
     
     @Override
     public boolean deletePoint(Point point) {
-    	long starttime = System.currentTimeMillis();
     	List<KDNode> search = new ArrayList<KDNode>();
     	search = BSTSearch(getRelTree(point), point, 1, search, true);	// Check that the point exists in the tree
     	KDNode n = search.get(0);
@@ -180,8 +167,6 @@ public class KDTreeNN implements NearestNeigh{
             	
             	n.value = a.value;
         	}
-        	long endtime = System.currentTimeMillis();
-        	System.out.println("Delete\t| Total: " + (endtime - starttime));
         	return true;
         } else {
         	return false;	
@@ -289,10 +274,8 @@ public class KDTreeNN implements NearestNeigh{
     
     //Used for when a node with multiple children is deleted
     public KDNode getInnerLeftNode(KDNode root) {
-    	
     	if (root == null)
     		return null;
-    	
     	KDNode c = getInnerLeftNode(root.left);
     	if (c != null)
     		return c;
@@ -308,23 +291,5 @@ public class KDTreeNN implements NearestNeigh{
     	case HOSPITAL:return rootH;
     	default: return null;
     	}
-    }
-    
-    public void printChildren(KDNode T) {
-    	System.out.println(T.value.id);
-		if (T.left != null) {
-			System.out.println("\tleft: " + T.left.value.id);
-			if (T.left.left != null)
-				System.out.println("\t\tleft: " + T.left.left.value.id);
-			if (T.left.right != null)
-				System.out.println("\t\tright: " + T.left.right.value.id);
-		}
-		if (T.right != null) {
-			System.out.println("\tright: " + T.right.value.id);
-			if (T.right.left != null)
-				System.out.println("\t\tleft: " + T.right.left.value.id);
-			if (T.right.right != null)
-				System.out.println("\t\tright: " + T.right.right.value.id);
-		}
     }
 }
