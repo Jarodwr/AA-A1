@@ -6,7 +6,7 @@ import java.io.Writer;
 import java.util.Date;
 
 import mainc.NearestNeighFileBased;
-// Note, if you're running this class the main for the implementation must be in a proper package NOT default, and imported correctly to this file
+
 public class Testing {
 
 	// This class is a giant wrapper for the implementation, it runs the implementation many times with different settings, appending the time it takes for each execution to the output file "TestSummary.out"
