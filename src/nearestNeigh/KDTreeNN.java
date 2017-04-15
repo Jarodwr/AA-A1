@@ -34,7 +34,14 @@ public class KDTreeNN implements NearestNeigh{
         		}
         	}
     	} while(swapped);
-    	
+//    	long bs = System.currentTimeMillis();
+//    	List<Point> l = new ArrayList<Point>(points);
+//    	l = Quicksort.byLat(l, 0, l.size()-1);
+//    	for (int i = 0; i < l.size(); i++)
+//    		if (!l.get(i).equals(sortedByLat.get(i)))
+//    			System.out.println("Noooooooooo");
+//    	System.out.println("BubbleSort: " + (bs - starttime) + " | QuickSort: " + (System.currentTimeMillis() - bs));
+//    	System.out.println("Size: " + l.size());
     	do {
     		swapped = false;
         	for (int i = 0; i < sortedByLon.size()-1; i++) {
@@ -67,7 +74,7 @@ public class KDTreeNN implements NearestNeigh{
     	return rl;
     }
     
-    public KDNode buildTree(List<Point> p, KDNode parent, boolean lat) {
+    public KDNode buildTree(List<Point> p, KDNode parent, boolean lon) {
 
     	KDNode T = new KDNode(p.get((p.size()-1)/2), parent);	//Get the median
     	p.remove((p.size()-1)/2);	//Remove the median from the list of points
@@ -78,15 +85,15 @@ public class KDTreeNN implements NearestNeigh{
     		
     	case 1:
     		boolean isLeft;	// Check if the remaining node is left or right
-    		if (lat)	//Decide what is left or right based off the current layer
+    		if (lon)	//Decide what is left or right based off the current layer
     			isLeft = p.get(0).lon > T.value.lon;
     		else
     			isLeft = p.get(0).lat > T.value.lat;
 
     		if (isLeft)
-    			T.left = buildTree(p, T, !lat);
+    			T.left = buildTree(p, T, !lon);
     		else
-    			T.right = buildTree(p, T, !lat);
+    			T.right = buildTree(p, T, !lon);
     		break;
 
     	default:
@@ -99,7 +106,7 @@ public class KDTreeNN implements NearestNeigh{
     		//Sort for the next level
     		//TODO: improve this sort, currently bottleneck, maybe additional parameters in function
     		//TODO: cleanup
-    		if (lat) {
+    		if (lon) {
     			List<Point> tempL = new ArrayList<Point>(sortedByLat);
     			tempL.retainAll(left);
     			left = tempL;
@@ -114,8 +121,8 @@ public class KDTreeNN implements NearestNeigh{
     			tempR.retainAll(right);
     			right = tempR;
     		}
-    		T.left = buildTree(left, T, !lat);	//Build tree using points lower than T's value
-    		T.right = buildTree(right, T, !lat);	//Build tree using points higher than T's value
+    		T.left = buildTree(left, T, !lon);	//Build tree using points lower than T's value
+    		T.right = buildTree(right, T, !lon);	//Build tree using points higher than T's value
     	}
     	return T;
     }
@@ -132,7 +139,7 @@ public class KDTreeNN implements NearestNeigh{
     	for (int i = nodes.size()-1; i >= 0; i--)
     		results.add(nodes.get(i).value);
     	long endtime = System.currentTimeMillis();
-    	System.out.println("Search\t| Total: " + (endtime - starttime));
+    	System.out.println("Search\t| Total: " + (endtime - starttime) + ", K: " + k);
         return results;
     }
 
@@ -149,13 +156,13 @@ public class KDTreeNN implements NearestNeigh{
     	return true;
     }
 
-    public KDNode addToTree(KDNode T, Point value, boolean lat) {
+    public KDNode addToTree(KDNode T, Point value, boolean lon) {
     	
     	KDNode left = T.left;
     	KDNode right = T.right;
     	
     	boolean goLeft;
-		if (lat)
+		if (lon)
 			goLeft = T.value.lat < value.lat;
 		else
 			goLeft = T.value.lon < value.lon;
@@ -170,15 +177,15 @@ public class KDTreeNN implements NearestNeigh{
     	} else {	// Go next level down the tree in search of a leaf
     		if (goLeft) {
     			if (left != null)
-    				return addToTree(left, value, !lat);
+    				return addToTree(left, value, !lon);
     			else
-    				return addToTree(right, value, !lat);
+    				return addToTree(right, value, !lon);
     			
     		} else {
     			if (right != null)
-    				return addToTree(right, value, !lat);
+    				return addToTree(right, value, !lon);
     			else
-    				return addToTree(left, value, !lat);
+    				return addToTree(left, value, !lon);
     		}
     	}
     	return T;
@@ -242,7 +249,7 @@ public class KDTreeNN implements NearestNeigh{
     }
     
     // Recursive search
-	List<KDNode> BSTSearch(KDNode T, Point value, int k, List<KDNode> c, boolean lat) {
+	List<KDNode> BSTSearch(KDNode T, Point value, int k, List<KDNode> c, boolean lon) {
 	
 		if (T == null) {
 			return c;
@@ -253,10 +260,10 @@ public class KDTreeNN implements NearestNeigh{
 		if (left == null && right == null) {	//If there are no children, search no further
 	
 		} else if (left == null) {	//If there is no left child, search the right
-			c = BSTSearch(right, value, k, c, !lat);
+			c = BSTSearch(right, value, k, c, !lon);
 	
 		} else if (right == null) {	//If there is no right child, search the left
-			c = BSTSearch(left, value, k, c, !lat);
+			c = BSTSearch(left, value, k, c, !lon);
 	
 		} else {
 			//Choose which path to go down based on layer number
@@ -264,7 +271,7 @@ public class KDTreeNN implements NearestNeigh{
 	
 			boolean goLeft = false;
 			double divDist = 0;	//	Get distance in the relevant dimension from the current node to the search
-			if (lat) {	//	Check which branch to search based on the current layer
+			if (lon) {	//	Check which branch to search based on the current layer
 				goLeft = T.value.lat <= value.lat;
 				divDist = Math.abs(T.value.lat - value.lat);
 
@@ -274,15 +281,15 @@ public class KDTreeNN implements NearestNeigh{
 			}
 	
 			if (goLeft) {
-				c = BSTSearch(left, value, k, c, !lat);	//	Search the branch
+				c = BSTSearch(left, value, k, c, !lon);	//	Search the branch
 				//	If there aren't enough entries in the results OR alternate branch could 
 				//	potentially have closer nodes than the farthest in the results list
 				if (c.size() < k || divDist < c.get(0).value.distTo(value))
-					c = BSTSearch(right, value, k, c, !lat);	//	Search alternate branch
+					c = BSTSearch(right, value, k, c, !lon);	//	Search alternate branch
 			} else {
-				c = BSTSearch(right, value, k, c, !lat);
+				c = BSTSearch(right, value, k, c, !lon);
 				if (c.size() < k || divDist < c.get(0).value.distTo(value))
-					c = BSTSearch(left, value, k, c, !lat);
+					c = BSTSearch(left, value, k, c, !lon);
 			}
 		}
 	
