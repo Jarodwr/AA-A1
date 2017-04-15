@@ -42,23 +42,17 @@ public class CommandSetGen {
 	
 	public static void testAdditionRemovalEffect(List<Point> points, String outputTestPrefix) throws FileNotFoundException {
 		String s = "";
-		for(int i = 0; i < (4); i++) {
+		for(int i = 0; i < (6); i++) {
 			File outputFile = new File(outputTestPrefix + "_" + (i) + ".in");
 	        PrintWriter writer = new PrintWriter(outputFile);
-			if (i % 2 == 0 || i == 0) {
-				String t = "";
-		        for(int j = 0; j < (i + 1) * 50; j++) {
+			String t = "";
+			for(int j = 0; j < (i + 1) * 50; j++) {
 			        t = t + randomAdditionPoint(j + "a", "restaurant") + "\n";
 			        t = t + randomDeletionPoint(points, "restaurant") + "\n";
-		        }
-		        s = s + t;
-			}
-					
-
-			else {
-				String rs = randomSearch(10, "restaurant") + "\n";
-				s = s + rs;
-			}
+		    }
+		    s = s + t;
+		    String rs = randomSearch(10, "restaurant") + "\n";
+		    s = s + rs;
 			writer.println(s);
 			writer.close();
 		}
