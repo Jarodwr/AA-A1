@@ -42,7 +42,7 @@ public class CommandSetGen {
 	
 	public static void testAdditionRemovalEffect(List<Point> points, String outputTestPrefix) throws FileNotFoundException {
 		String s = "";
-		for(int i = 0; i < (10); i++) {
+		for(int i = 0; i < (4); i++) {
 			File outputFile = new File(outputTestPrefix + "_" + (i) + ".in");
 	        PrintWriter writer = new PrintWriter(outputFile);
 			if (i % 2 == 0 || i == 0) {
@@ -89,14 +89,32 @@ public class CommandSetGen {
 			System.out.println("Printing Variance of KValue effect test " +(i+1));
 	        File outputFile = new File(outputTestPrefix + (i + 1) + ".in");
 	        PrintWriter writer = new PrintWriter(outputFile);
-	        // increase searches by 30 for each test
-	        Random r = new Random();
-	        int k = r.nextInt(149) + 1; // any value between 1 and 150
-		    writer.println(randomSearch(k, "restaurant"));
+	        if (i == 0) {
+	        	writer.println(randomSearch(1, "restaurant"));
 	
-		    writer.println(randomSearch(k, "education"));
+	        	writer.println(randomSearch(1, "education"));
 	
-		    writer.println(randomSearch(k, "hospital"));
+	        	writer.println(randomSearch(1, "hospital"));
+	        }
+	        else if (i == 1) {
+	        	writer.println(randomSearch(25, "restaurant"));
+	        	
+			    writer.println(randomSearch(25, "education"));
+		
+			    writer.println(randomSearch(25, "hospital"));
+	        } else if (i == 2) {
+	        	writer.println(randomSearch(75, "restaurant"));
+	        	
+			    writer.println(randomSearch(75, "education"));
+		
+			    writer.println(randomSearch(75, "hospital"));
+	        } else {
+	        	writer.println(randomSearch(150, "restaurant"));
+	        	
+			    writer.println(randomSearch(150, "education"));
+		
+			    writer.println(randomSearch(150, "hospital"));
+	        }
 	        writer.close();
 		}
 	}

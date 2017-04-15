@@ -23,7 +23,7 @@ public class Generation {
 			CommandSetGen.testAdditionRemovalEffect(txtFileIntoList(mediumData), "testing/mediumdataset_additionremovaltest");
 			CommandSetGen.testAdditionRemovalEffect(txtFileIntoList(largeData), "testing/largedataset_additionremovaltest");
 		
-			CommandSetGen.testVarianceOfKValue(4, "kvariancetest");
+			CommandSetGen.testVarianceOfKValue(4, "testing/kvariancetest");
 			
 			
 		} catch (FileNotFoundException e) {
