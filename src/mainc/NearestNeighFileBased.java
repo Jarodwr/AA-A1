@@ -1,3 +1,4 @@
+package mainc;
 
 import nearestNeigh.Category;
 import nearestNeigh.Point;
@@ -149,6 +150,7 @@ public class NearestNeighFileBased {
             scanner.close();
             writer.close();
         } catch (Exception e) {
+        	e.printStackTrace();
             System.err.println("Command file doesn't exist.");
             usage(progName);
         }

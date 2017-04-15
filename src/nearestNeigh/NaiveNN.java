@@ -39,7 +39,7 @@ public class NaiveNN implements NearestNeigh{
     	}
     	
     	
-    	/* BUBBLE SORT - code kept for historical purposes, now replaced by quicksort function
+    	/* BUBBLE SORT - code kept for historical purposes, now replaced by quicksort function 
     	while(true) { // swap function
     		didSwapOccur = false;
     		if (this.Index.size() == 1 || this.Index.size() == 0) {
@@ -56,14 +56,18 @@ public class NaiveNN implements NearestNeigh{
     		if (didSwapOccur == false) {
     			break;
     		}
-    	} */
+    	} 
+    	*/
+    	Quicksort.byDist(this.Index, searchTerm, 0, this.Index.size()); // Quicksort to replace bubble sort, much faster
     	
-    	Quicksort.byDist(this.Index, searchTerm, 0, this.Index.size() - 1 ); // Quicksort to replace bubble sort, much faster
-    	
-    	
-        for (int i = 0; i < k; i++){
-        		returnPoints.add(this.Index.get(i));
-        }
+    	if (k != 1) {
+	        for (int i = 0; i < k; i++){
+	        		returnPoints.add(this.Index.get(i));
+	        }
+    	}
+    	else {
+    		returnPoints.add(this.Index.get(0));
+    	}
     	return returnPoints;
     }
 
