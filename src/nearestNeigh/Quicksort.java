@@ -7,7 +7,6 @@ public class Quicksort {
 	
 	public static List<Point> byLat(List<Point> l, int low, int high) {
 
-		
 		int lowWall = low;
 		int highWall = high;
 		

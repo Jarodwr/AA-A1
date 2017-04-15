@@ -9,53 +9,14 @@ import java.util.List;
  * @author Jeffrey, Youhan
  */
 public class KDTreeNN implements NearestNeigh{
-	List<Point> sortedByLat, sortedByLon;
-	KDNode rootE;
-	KDNode rootH;
-	KDNode rootR;
+	KDNode rootE, rootH, rootR;
 	
     @Override
     public void buildIndex(List<Point> points) {
     	long starttime = System.currentTimeMillis();
-    	sortedByLat = new ArrayList<Point>(points);	//Create sorted lists to make building easier
-    	sortedByLon = new ArrayList<Point>(points);	//Will eventually get rid of this and embed into recursive build
-    	
-    	//TODO: change to quick sort
-    	boolean swapped = false;
-    	do {
-    		swapped = false;
-        	for (int i = 0; i < sortedByLat.size()-1; i++) {
-        		Point first = sortedByLat.get(i);
-        		Point second = sortedByLat.get(i+1);
-        		if (first.lat > second.lat) {
-        			sortedByLat.remove(first);
-        			sortedByLat.add(i+1, first);
-        			swapped = true;
-        		}
-        	}
-    	} while(swapped);
-//    	long bs = System.currentTimeMillis();
-//    	List<Point> l = new ArrayList<Point>(points);
-//    	l = Quicksort.byLat(l, 0, l.size()-1);
-//    	for (int i = 0; i < l.size(); i++)
-//    		if (!l.get(i).equals(sortedByLat.get(i)))
-//    			System.out.println("Noooooooooo");
-//    	System.out.println("BubbleSort: " + (bs - starttime) + " | QuickSort: " + (System.currentTimeMillis() - bs));
-//    	System.out.println("Size: " + l.size());
-    	do {
-    		swapped = false;
-        	for (int i = 0; i < sortedByLon.size()-1; i++) {
-        		Point first = sortedByLon.get(i);
-        		Point second = sortedByLon.get(i+1);
-        		if (first.lon > second.lon) {
-        			sortedByLon.remove(first);
-        			sortedByLon.add(i+1, first);
-        			swapped = true;
-        		}
-        	}
-    	} while(swapped);
+    	List<Point> sortedByLon = new ArrayList<Point>(points);	//Will eventually get rid of this and embed into recursive build
+    	sortedByLon = Quicksort.byLon(sortedByLon, 0, sortedByLon.size()-1);
 
-    	//Build separate trees for each category to speed up searching
     	long recursivetime = System.currentTimeMillis();
     	rootE = buildTree(keepCat(Category.EDUCATION, sortedByLon), rootE, true);
     	rootH = buildTree(keepCat(Category.HOSPITAL, sortedByLon), rootH, true);
@@ -104,22 +65,12 @@ public class KDTreeNN implements NearestNeigh{
     		
     		//Decide what is left or right based off the current layer
     		//Sort for the next level
-    		//TODO: improve this sort, currently bottleneck, maybe additional parameters in function
-    		//TODO: cleanup
     		if (lon) {
-    			List<Point> tempL = new ArrayList<Point>(sortedByLat);
-    			tempL.retainAll(left);
-    			left = tempL;
-    			List<Point> tempR = new ArrayList<Point>(sortedByLat);
-    			tempR.retainAll(right);
-    			right = tempR;
+    			left = Quicksort.byLat(left, 0, left.size()-1);
+    			right = Quicksort.byLat(right, 0, right.size()-1);
     		} else {
-    			List<Point> tempL = new ArrayList<Point>(sortedByLon);
-    			tempL.retainAll(left);
-    			left = tempL;
-    			List<Point> tempR = new ArrayList<Point>(sortedByLon);
-    			tempR.retainAll(right);
-    			right = tempR;
+    			left = Quicksort.byLon(left, 0, left.size()-1);
+    			right = Quicksort.byLon(right, 0, right.size()-1);
     		}
     		T.left = buildTree(left, T, !lon);	//Build tree using points lower than T's value
     		T.right = buildTree(right, T, !lon);	//Build tree using points higher than T's value
@@ -135,8 +86,7 @@ public class KDTreeNN implements NearestNeigh{
     	nodes = BSTSearch(root, searchTerm, k, nodes, true);
     	ArrayList<Point> results = new ArrayList<Point>();
     	
-    	// Populate results with points from nodes
-    	for (int i = nodes.size()-1; i >= 0; i--)
+    	for (int i = nodes.size()-1; i >= 0; i--)	//	Populate results with points from nodes
     		results.add(nodes.get(i).value);
     	long endtime = System.currentTimeMillis();
     	System.out.println("Search\t| Total: " + (endtime - starttime) + ", K: " + k);
@@ -145,6 +95,7 @@ public class KDTreeNN implements NearestNeigh{
 
     @Override
     public boolean addPoint(Point point) {
+    	System.out.print("\t");
     	long starttime = System.currentTimeMillis();
     	if (!isPointIn(point)){	// Check that the point doesn't already exist
     		addToTree(getRelTree(point), point, true);	// Add the point to the tree
