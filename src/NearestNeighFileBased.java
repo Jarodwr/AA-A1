@@ -34,6 +34,11 @@ public class NearestNeighFileBased {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+    	
+    	try {
+			Writer output = new BufferedWriter(new FileWriter("TestSummary.out", true));
+		
+    	Long time = new Date().getTime();
         // read command line arguments
         if (args.length != 4) {
             System.err.println("Incorrect number of arguments.");
@@ -145,9 +150,12 @@ public class NearestNeighFileBased {
             }
             scanner.close();
             writer.close();
-        } catch (FileNotFoundException e) {
+           output.append(commandFileName + " Execution time:" + (new Date().getTime() - time) + "\n");
+           output.close();
+        } catch (Exception e) {
             System.err.println("Command file doesn't exist.");
             usage(progName);
         }
-    }
+    	}catch (Exception e) {System.out.println("fuck");}
+   }
 }
