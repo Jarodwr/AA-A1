@@ -39,26 +39,7 @@ public class CommandSetGen {
 			writer.close();
 		}
 	}
-	// Generate random deletion command. Takes a list of points as an argument, this is just the dataset, as you cannot randomly generate points to delete if they are not in the dataset (there is no point)
-	private static String randomDeletionPoint(List<Point> points, String category) throws FileNotFoundException {
-       
-        Random r = new Random();
-        Point randompoint;
-		String s;
-        if (category == "") {
-        	System.out.println("No category");
-            randompoint = points.get(r.nextInt(points.size()-1));
-    		s = "D " + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
-        }
-        else {
-        	 do {
-                randompoint = points.get(r.nextInt(points.size()-1));
-        		s = "D " + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
-        	} while(randompoint.cat != Point.parseCat(category));
-        }
-		
-		return s;
-	}
+
 	// Explanation of this test is in the document supplied.
 	public static void testVarianceOfKValue(int amountOfTests, String outputTestPrefix) throws FileNotFoundException {
 		for(int i = 0; i < amountOfTests; i++) { 
@@ -95,6 +76,56 @@ public class CommandSetGen {
 		}
 	}
 	
+	// Function to generate tests that test the running times of large amounts of small searches, that is searches with low k values.
+	public static void testSmallSearches(int amountOfTests, String outputTestPrefix) throws FileNotFoundException {
+		for(int i = 0; i < amountOfTests; i++) { 
+			System.out.println("Printing Small Searches effect test " +(i+1));
+	        File outputFile = new File(outputTestPrefix + (i + 1) + ".in");
+	        PrintWriter writer = new PrintWriter(outputFile);
+	        if (i == 0) {
+	        	writer.println(randomSearch(1, "restaurant"));
+	
+	        	writer.println(randomSearch(1, "education"));
+	
+	        	writer.println(randomSearch(1, "hospital"));
+	        }
+	        else if (i == 1) {
+	        	for(int j = 0;j < 100;j++) {
+	        		writer.println(randomSearch(1, "restaurant"));
+		        	
+				    writer.println(randomSearch(1, "education"));
+			
+				    writer.println(randomSearch(1, "hospital"));
+	        	}
+	        	
+	        } else if (i == 2) {
+	        	for(int j = 0;j < 500;j++) {
+	        		writer.println(randomSearch(1, "restaurant"));
+		        	
+				    writer.println(randomSearch(1, "education"));
+			
+				    writer.println(randomSearch(1, "hospital"));
+	        	}
+	        } else if (i == 3){
+	        	for(int j = 0;j < 1000;j++) {
+	        		writer.println(randomSearch(1, "restaurant"));
+		        	
+				    writer.println(randomSearch(1, "education"));
+			
+				    writer.println(randomSearch(1, "hospital"));
+	        	}
+	        } else if (i == 4){
+	        	for(int j = 0;j < 2000;j++) {
+	        		writer.println(randomSearch(1, "restaurant"));
+		        	
+				    writer.println(randomSearch(1, "education"));
+			
+				    writer.println(randomSearch(1, "hospital"));
+	        	}
+	        }
+	        writer.close();
+		}
+	}
 	
 	// Generate a random search command, can supply the category you want or let it pick one at random
 	public static String randomSearch(int k, String category) {
@@ -114,6 +145,27 @@ public class CommandSetGen {
 			String s = "S " + cat + " " + x + " " + y + " " + k;
 			
 			return s;
+	}
+	
+	// Generate random deletion command. Takes a list of points as an argument, this is just the dataset, as you cannot randomly generate points to delete if they are not in the dataset (there is no point)
+	private static String randomDeletionPoint(List<Point> points, String category) throws FileNotFoundException {
+       
+        Random r = new Random();
+        Point randompoint;
+		String s;
+        if (category == "") {
+        	System.out.println("No category");
+            randompoint = points.get(r.nextInt(points.size()-1));
+    		s = "D " + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
+        }
+        else {
+        	 do {
+                randompoint = points.get(r.nextInt(points.size()-1));
+        		s = "D " + randompoint.id + " " + randompoint.cat.toString() + " " + randompoint.lat + " " + randompoint.lon;
+        	} while(randompoint.cat != Point.parseCat(category));
+        }
+		
+		return s;
 	}
 	
 	// Generate random addition command.
