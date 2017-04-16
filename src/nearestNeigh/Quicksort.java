@@ -7,23 +7,23 @@ public class Quicksort {
 	
 	public static List<Point> byLat(List<Point> l, int low, int high) {
 
-		int lowWall = low;
-		int highWall = high;
+		int lowWall = low;	//	Left threshold of the unsearched portion of this partition
+		int highWall = high;	//	Right threshold of the unsearched portion of this partition
 		
-		Point pivot = l.get((low + high)/2);
-		while (lowWall < highWall) {
-			while (l.get(lowWall).lat < pivot.lat)
-				lowWall++;
+		Point pivot = l.get((low + high)/2);	//	Pivot point is the median between high and low
+		while (lowWall < highWall) {	//	While there is still unsorted parts of the partition
+			while (l.get(lowWall).lat < pivot.lat)	//	Verify that all points in the left partition are lower than the pivot
+				lowWall++;	//	Move wall along to the next point
 
-			while (l.get(highWall).lat > pivot.lat)
-				highWall--;
+			while (l.get(highWall).lat > pivot.lat) //	Verify that all points in the left partition are lower than the pivot
+				highWall--; //	Move wall along to the next point
 
-			if (lowWall <= highWall)
+			if (lowWall <= highWall)	//	Checks that the point should be swapped
 				Collections.swap(l, lowWall, highWall);
 		}
-		if (low + 1 < lowWall)
+		if (low + 1 < lowWall)	//	Sorts the left partition if there remaining nodes to the left of the pivot
 			byLat(l, low, lowWall);
-		if (high > highWall + 1)
+		if (high > highWall + 1)	//	Sorts the right partition if there are remaining nodes to the right of the pivot
 			byLat(l, highWall, high);
 		return l;
 	}
